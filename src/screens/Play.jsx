@@ -7,6 +7,8 @@ import {
   submitAnswer,
   getReveal,
   setVerdict,
+  getGameSummary,
+  finishGame,
   subscribeRounds
 } from '../lib/rounds.js'
 
@@ -15,6 +17,7 @@ export default function Play({ room, me }) {
   const [round, setRound] = useState(null)
   const [mySubmission, setMySubmission] = useState(null)
   const [reveal, setReveal] = useState(null)
+  const [summary, setSummary] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -24,6 +27,8 @@ export default function Play({ room, me }) {
     setRound(null)
     setReveal(null)
     setMySubmission(null)
+
+    if (room.status === 'finished') return () => { active = false }
 
     fetchRound(room.code, idx)
       .then((existing) => {
@@ -38,7 +43,7 @@ export default function Play({ room, me }) {
       })
 
     return () => { active = false }
-  }, [room.code, idx])
+  }, [room.code, idx, room.status])
 
   useEffect(() => subscribeRounds(room.code, (row) => {
     if (row.idx === idx) setRound(row)
@@ -54,6 +59,15 @@ export default function Play({ room, me }) {
       })
     return () => { active = false }
   }, [room.code, idx, round?.revealed, round?.matched])
+
+  useEffect(() => {
+    if (room.status !== 'finished') return
+    let active = true
+    getGameSummary(room.code)
+      .then((data) => { if (active) setSummary(data) })
+      .catch((e) => { if (active) setError(e.message || 'Could not load the final summary.') })
+    return () => { active = false }
+  }, [room.code, room.status])
 
   async function handleSubmit(value) {
     setBusy(true)
@@ -90,12 +104,48 @@ export default function Play({ room, me }) {
     setBusy(true)
     setError('')
     try {
+      if (idx + 1 >= room.total_rounds) {
+        await finishGame(room.code)
+        return
+      }
       await openRound(room.code, idx + 1)
     } catch (e) {
-      setError(e.message || 'Could not open the next round.')
+      setError(e.message || 'Could not continue the game.')
     } finally {
       setBusy(false)
     }
+  }
+
+  if (room.status === 'finished') {
+    const matched = (summary ?? []).filter((item) => item.matched === true).length
+    const played = summary?.length ?? 0
+
+    return (
+      <div className="flex min-h-dvh flex-col justify-between px-5 pb-8 pt-14">
+        <header className="text-center">
+          <p className="seam-label">Game complete</p>
+          <h1 className="mt-4 text-4xl leading-tight">Same Page</h1>
+          <p className="mx-auto mt-4 max-w-xs text-cream/70">You made it through all the questions.</p>
+        </header>
+
+        <section className="my-10 text-center">
+          <p className="font-display text-6xl text-apricot">{matched}/{played}</p>
+          <p className="mt-3 text-cream/60">matched rounds</p>
+        </section>
+
+        <div className="space-y-3">
+          {(summary ?? []).map((item) => (
+            <div key={item.idx} className="rounded-2xl border border-cream/10 bg-plum/50 px-4 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-cream/70">Round {item.idx + 1}</span>
+                <span className="font-display">{item.matched === true ? 'Matched' : 'Different'}</span>
+              </div>
+              <p className="mt-1 text-sm text-cream/45">{item.prompt}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   if (!round) {
@@ -116,6 +166,7 @@ export default function Play({ room, me }) {
         onVerdict={handleVerdict}
         onNext={handleNext}
         busy={busy}
+        isLastRound={idx + 1 >= room.total_rounds}
       />
     )
   }
