@@ -5,7 +5,7 @@ returns text language plpgsql security definer set search_path = public as $$
 declare v_code text;
 begin
   loop
-    v_code := upper(substr(encode(gen_random_bytes(4), 'hex'), 1, 6));
+    v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
     exit when not exists (select 1 from public.rooms where code = v_code);
   end loop;
   return v_code;
