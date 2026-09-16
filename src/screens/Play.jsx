@@ -40,24 +40,20 @@ export default function Play({ room, me }) {
     return () => { active = false }
   }, [room.code, idx])
 
-  useEffect(() => {
-    return subscribeRounds(room.code, (row) => {
-      if (row.idx === idx) setRound(row)
-    })
-  }, [room.code, idx])
+  useEffect(() => subscribeRounds(room.code, (row) => {
+    if (row.idx === idx) setRound(row)
+  }), [room.code, idx])
 
   useEffect(() => {
     if (!round?.revealed) return
     let active = true
     getReveal(room.code, idx)
-      .then((answers) => {
-        if (active) setReveal(answers)
-      })
+      .then((answers) => { if (active) setReveal(answers) })
       .catch((e) => {
         if (active && e.message !== 'Both answers are not in yet.') setError(e.message)
       })
     return () => { active = false }
-  }, [room.code, idx, round?.revealed])
+  }, [room.code, idx, round?.revealed, round?.matched])
 
   async function handleSubmit(value) {
     setBusy(true)
@@ -79,6 +75,10 @@ export default function Play({ room, me }) {
     setError('')
     try {
       await setVerdict(room.code, idx, me, verdict)
+      const fresh = await getReveal(room.code, idx)
+      setReveal(fresh)
+      const updated = await fetchRound(room.code, idx)
+      if (updated) setRound(updated)
     } catch (e) {
       setError(e.message || 'Could not save your verdict.')
     } finally {
@@ -107,7 +107,17 @@ export default function Play({ room, me }) {
   }
 
   if (round.revealed && reveal) {
-    return <Reveal round={round} me={me} reveal={reveal} onVerdict={handleVerdict} onNext={handleNext} busy={busy} />
+    return (
+      <Reveal
+        room={room}
+        round={round}
+        me={me}
+        reveal={reveal}
+        onVerdict={handleVerdict}
+        onNext={handleNext}
+        busy={busy}
+      />
+    )
   }
 
   return (
