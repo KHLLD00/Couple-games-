@@ -35,6 +35,7 @@ export default function Landing({ onCreate, onJoin, busy, error }) {
       <div className="space-y-3">
         {mode === 'start' ? (
           <>
+            {error && <p className="text-center text-sm text-cherry">{error}</p>}
             <Button onClick={onCreate} disabled={busy}>
               {busy ? 'Opening a room' : 'Start a room'}
             </Button>
