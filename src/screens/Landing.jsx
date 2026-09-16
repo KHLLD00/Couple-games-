@@ -11,10 +11,10 @@ export default function Landing({ onCreate, onJoin, busy, error }) {
   return (
     <div className="flex min-h-dvh flex-col justify-between px-5 pb-8 pt-14">
       <header className="text-center">
-        <p className="seam-label">Two phones, one question</p>
+        <p className="seam-label">Two people. One question. No peeking.</p>
         <h1 className="mt-3 text-[3.25rem] leading-[0.95]">Same Page</h1>
         <p className="mx-auto mt-4 max-w-xs text-cream/70">
-          You both answer. Nobody peeks until you are both in.
+          Answer honestly. They can't see a thing until they answer too.
         </p>
       </header>
 
@@ -27,7 +27,7 @@ export default function Landing({ onCreate, onJoin, busy, error }) {
             <span className="font-display text-lg">Sweet enough to stand a spoon in</span>
           </SeamHalf>
           <SeamHalf label="Them" sealed>
-            <span className="text-sm text-cream/45">Sealed until you both answer</span>
+            <span className="text-sm text-cream/45">Their answer is hiding</span>
           </SeamHalf>
         </Seam>
       </section>
@@ -37,16 +37,16 @@ export default function Landing({ onCreate, onJoin, busy, error }) {
           <>
             {error && <p className="text-center text-sm text-cherry">{error}</p>}
             <Button onClick={onCreate} disabled={busy}>
-              {busy ? 'Opening a room' : 'Start a room'}
+              {busy ? 'Setting things up...' : 'Start the game'}
             </Button>
             <Button variant="ghost" onClick={() => setMode('join')}>
-              Join with a code
+              I've got a code
             </Button>
           </>
         ) : (
           <>
             <label className="block">
-              <span className="seam-label">Room code</span>
+              <span className="seam-label">Got a code?</span>
               <input
                 autoFocus
                 value={clean}
@@ -62,10 +62,10 @@ export default function Landing({ onCreate, onJoin, busy, error }) {
             </label>
             {error && <p className="text-center text-sm text-cherry">{error}</p>}
             <Button onClick={() => onJoin(clean)} disabled={clean.length < 6 || busy}>
-              {busy ? 'Finding the room' : 'Join room'}
+              {busy ? 'Looking for your room...' : 'Let me in'}
             </Button>
             <Button variant="ghost" onClick={() => setMode('start')}>
-              Back
+              Never mind
             </Button>
           </>
         )}
