@@ -39,7 +39,7 @@ export default function Reveal({ room, round, me, reveal, onVerdict, onNext, bus
   return (
     <div className="flex min-h-dvh flex-col justify-between px-5 pb-8 pt-14">
       <header className="text-center">
-        <p className="seam-label">Round {round.idx + 1} · Revealed</p>
+        <p className="seam-label">Round {round.idx + 1} · No more hiding</p>
         <h2 className="mx-auto mt-4 max-w-xs text-3xl leading-tight">{round.prompt}</h2>
       </header>
 
@@ -55,7 +55,7 @@ export default function Reveal({ room, round, me, reveal, onVerdict, onNext, bus
 
         {showMatchState && (
           <p className={`mt-4 text-center font-display text-xl ${matched ? 'text-mint' : 'text-cream/70'}`}>
-            {matched ? 'Same page.' : 'Different pages, still one book.'}
+            {matched ? 'Okayyy, you two actually agree.' : 'Well... someone has explaining to do.'}
           </p>
         )}
 
@@ -79,15 +79,15 @@ export default function Reveal({ room, round, me, reveal, onVerdict, onNext, bus
 
       {isText && !myVerdictIn ? (
         <div className="space-y-3">
-          <p className="text-center text-cream/60">Close enough to call it a match?</p>
-          <Button onClick={() => onVerdict(true)} disabled={busy}>That&rsquo;s us</Button>
-          <Button variant="ghost" onClick={() => onVerdict(false)} disabled={busy}>Not quite</Button>
+          <p className="text-center text-cream/60">We're calling that a match, right?</p>
+          <Button onClick={() => onVerdict(true)} disabled={busy}>Yep, that's us</Button>
+          <Button variant="ghost" onClick={() => onVerdict(false)} disabled={busy}>Absolutely not 😂</Button>
         </div>
       ) : isText && !bothVerdictsIn ? (
-        <p className="text-center text-cream/60">Waiting on their call.</p>
+        <p className="text-center text-cream/60">They're deciding... this could get interesting.</p>
       ) : (
         <Button onClick={onNext} disabled={busy}>
-          {isLastRound ? 'See our results' : 'Next round'}
+          {isLastRound ? 'Show me the damage' : 'Keep going'}
         </Button>
       )}
     </div>
