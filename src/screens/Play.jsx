@@ -40,7 +40,7 @@ export default function Play({ room, me, onExit }) {
         if (active && opened) setRound(opened)
       })
       .catch((e) => {
-        if (active) setError(e.message || 'Could not open this round.')
+        if (active) setError(e.message || 'Something went wrong opening this round.')
       })
 
     return () => { active = false }
@@ -66,7 +66,7 @@ export default function Play({ room, me, onExit }) {
     let active = true
     getGameSummary(room.code)
       .then((data) => { if (active) setSummary(data) })
-      .catch((e) => { if (active) setError(e.message || 'Could not load the final summary.') })
+      .catch((e) => { if (active) setError(e.message || "We couldn't load your results." ) })
     return () => { active = false }
   }, [room.code, room.status])
 
@@ -79,7 +79,7 @@ export default function Play({ room, me, onExit }) {
       const fresh = await fetchRound(room.code, idx)
       if (fresh) setRound(fresh)
     } catch (e) {
-      setError(e.message || 'Could not submit your answer.')
+      setError(e.message || "Your answer didn't go through. Try again.")
     } finally {
       setBusy(false)
     }
@@ -95,7 +95,7 @@ export default function Play({ room, me, onExit }) {
       const updated = await fetchRound(room.code, idx)
       if (updated) setRound(updated)
     } catch (e) {
-      setError(e.message || 'Could not save your verdict.')
+      setError(e.message || "We couldn't save that call. Try again.")
     } finally {
       setBusy(false)
     }
@@ -111,7 +111,7 @@ export default function Play({ room, me, onExit }) {
       }
       await openRound(room.code, idx + 1)
     } catch (e) {
-      setError(e.message || 'Could not continue the game.')
+      setError(e.message || "We couldn't move to the next round. Try again.")
     } finally {
       setBusy(false)
     }
@@ -120,7 +120,7 @@ export default function Play({ room, me, onExit }) {
   const exitButton = (
     <div className="mt-6 flex justify-center">
       <Button variant="ghost" onClick={onExit}>
-        Exit session
+        Leave game
       </Button>
     </div>
   )
@@ -132,14 +132,16 @@ export default function Play({ room, me, onExit }) {
     return (
       <div className="flex min-h-dvh flex-col justify-between px-5 pb-8 pt-14">
         <header className="text-center">
-          <p className="seam-label">Game complete</p>
+          <p className="seam-label">And that's a wrap.</p>
           <h1 className="mt-4 text-4xl leading-tight">Same Page</h1>
-          <p className="mx-auto mt-4 max-w-xs text-cream/70">You made it through all the questions.</p>
+          <p className="mx-auto mt-4 max-w-xs text-cream/70">
+            You survived every question. Now let's see how often you were actually on the same page.
+          </p>
         </header>
 
         <section className="my-10 text-center">
           <p className="font-display text-6xl text-apricot">{matched}/{played}</p>
-          <p className="mt-3 text-cream/60">matched rounds</p>
+          <p className="mt-3 text-cream/60">times you agreed</p>
         </section>
 
         <div className="space-y-3">
@@ -147,7 +149,7 @@ export default function Play({ room, me, onExit }) {
             <div key={item.idx} className="rounded-2xl border border-cream/10 bg-plum/50 px-4 py-3">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm text-cream/70">Round {item.idx + 1}</span>
-                <span className="font-display">{item.matched === true ? 'Matched' : 'Different'}</span>
+                <span className="font-display">{item.matched === true ? 'Same answer' : 'Not even close'}</span>
               </div>
               <p className="mt-1 text-sm text-cream/45">{item.prompt}</p>
             </div>
@@ -161,7 +163,7 @@ export default function Play({ room, me, onExit }) {
   if (!round) {
     return (
       <div className="flex min-h-dvh items-center justify-center px-5">
-        {error ? <p className="text-center text-cherry">{error}</p> : <p className="seam-label">Opening round {idx + 1}</p>}
+        {error ? <p className="text-center text-cherry">{error}</p> : <p className="seam-label">Getting round {idx + 1} ready...</p>}
       </div>
     )
   }
