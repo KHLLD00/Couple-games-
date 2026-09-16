@@ -6,12 +6,25 @@ export async function openRound(code, idx) {
   return data
 }
 
+export async function fetchRound(code, idx) {
+  const { data, error } = await supabase
+    .from('rounds')
+    .select('*')
+    .eq('room_code', code)
+    .eq('idx', idx)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function submitAnswer(code, idx, playerId, value) {
+  const cleanValue = String(value ?? '').trim()
+  if (!cleanValue) throw new Error('Please enter an answer.')
   const { error } = await supabase.rpc('submit_answer', {
     p_code: code,
     p_idx: idx,
     p_player: playerId,
-    p_value: value
+    p_value: cleanValue
   })
   if (error) throw new Error(error.message)
 }
@@ -37,17 +50,21 @@ export async function finishGame(code) {
   if (error) throw new Error(error.message)
 }
 
-// One subscription covers every round in the room — Play filters by idx itself,
-// since realtime's postgres_changes filter can only match one column at a time.
 export function subscribeRounds(code, cb) {
   const channel = supabase
     .channel(`rounds:${code}`)
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'rounds', filter: `room_code=eq.${code}` },
-      (payload) => cb(payload.new)
+      (payload) => {
+        if (payload.eventType !== 'DELETE') cb(payload.new)
+      }
     )
-    .subscribe()
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') {
+        console.error(`Realtime subscription failed for room ${code}`)
+      }
+    })
 
   return () => supabase.removeChannel(channel)
 }
