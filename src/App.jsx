@@ -108,6 +108,12 @@ export default function App() {
     }
   }
 
+  function handleExit() {
+    localStorage.removeItem(ROOM_KEY)
+    setRoom(null)
+    setError('')
+  }
+
   if (busy && !me) {
     return <div className="flex min-h-dvh items-center justify-center px-5"><p className="seam-label">Starting your session</p></div>
   }
@@ -121,8 +127,8 @@ export default function App() {
   }
 
   if (room.status === 'lobby') {
-    return <Lobby room={room} isHost={room.host_id === me} onStart={handleStart} busy={busy} />
+    return <Lobby room={room} isHost={room.host_id === me} onStart={handleStart} onExit={handleExit} busy={busy} />
   }
 
-  return <Play room={room} me={me} />
+  return <Play room={room} me={me} onExit={handleExit} />
 }
