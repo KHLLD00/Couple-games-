@@ -130,32 +130,34 @@ export default function Play({ room, me, onExit }) {
     const played = summary?.length ?? 0
 
     return (
-      <div className="flex min-h-dvh flex-col justify-between px-5 pb-8 pt-14">
-        <header className="text-center">
-          <p className="seam-label">And that's a wrap.</p>
-          <h1 className="mt-4 text-4xl leading-tight">Same Page</h1>
-          <p className="mx-auto mt-4 max-w-xs text-cream/70">
-            You survived every question. Now let's see how often you were actually on the same page.
-          </p>
-        </header>
+      <div className="min-h-dvh px-5 pb-8 pt-14">
+        <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] max-w-lg flex-col">
+          <header className="text-center">
+            <p className="seam-label">And that's a wrap.</p>
+            <h1 className="mt-4 text-4xl leading-tight">Same Page</h1>
+            <p className="mx-auto mt-4 max-w-xs text-cream/70">
+              You survived every question. Now let's see how often you were actually on the same page.
+            </p>
+          </header>
 
-        <section className="my-10 text-center">
-          <p className="font-display text-6xl text-apricot">{matched}/{played}</p>
-          <p className="mt-3 text-cream/60">times you agreed</p>
-        </section>
+          <section className="my-10 text-center">
+            <p className="font-display text-6xl text-apricot">{matched}/{played}</p>
+            <p className="mt-3 text-cream/60">times you agreed</p>
+          </section>
 
-        <div className="space-y-3">
-          {(summary ?? []).map((item) => (
-            <div key={item.idx} className="rounded-2xl border border-cream/10 bg-plum/50 px-4 py-3">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-cream/70">Round {item.idx + 1}</span>
-                <span className="font-display">{item.matched === true ? 'Same answer' : 'Not even close'}</span>
+          <div className="space-y-3">
+            {(summary ?? []).map((item) => (
+              <div key={item.idx} className="rounded-2xl border border-cream/10 bg-plum/50 px-4 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-cream/70">Round {item.idx + 1}</span>
+                  <span className="font-display">{item.matched === true ? 'Same answer' : 'Not even close'}</span>
+                </div>
+                <p className="mt-1 text-sm text-cream/45">{item.prompt}</p>
               </div>
-              <p className="mt-1 text-sm text-cream/45">{item.prompt}</p>
-            </div>
-          ))}
+            ))}
+          </div>
+          <div className="mt-auto pt-8">{exitButton}</div>
         </div>
-        {exitButton}
       </div>
     )
   }
@@ -170,27 +172,31 @@ export default function Play({ room, me, onExit }) {
 
   if (round.revealed && reveal) {
     return (
-      <>
-        <Reveal
-          room={room}
-          round={round}
-          me={me}
-          reveal={reveal}
-          onVerdict={handleVerdict}
-          onNext={handleNext}
-          busy={busy}
-          isLastRound={idx + 1 >= room.total_rounds}
-        />
-        {exitButton}
-      </>
+      <div className="min-h-dvh px-5 pb-8 pt-14">
+        <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] max-w-lg flex-col">
+          <Reveal
+            room={room}
+            round={round}
+            me={me}
+            reveal={reveal}
+            onVerdict={handleVerdict}
+            onNext={handleNext}
+            busy={busy}
+            isLastRound={idx + 1 >= room.total_rounds}
+          />
+          <div className="mt-auto">{exitButton}</div>
+        </div>
+      </div>
     )
   }
 
   return (
-    <>
-      <Question round={round} mySubmission={mySubmission} onSubmit={handleSubmit} busy={busy} />
-      {exitButton}
-      {error && <p className="fixed bottom-4 left-5 right-5 text-center text-sm text-cherry">{error}</p>}
-    </>
+    <div className="min-h-dvh px-5 pb-8 pt-14">
+      <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] max-w-lg flex-col">
+        <Question round={round} mySubmission={mySubmission} onSubmit={handleSubmit} busy={busy} />
+        <div className="mt-auto">{exitButton}</div>
+        {error && <p className="fixed bottom-4 left-5 right-5 text-center text-sm text-cherry">{error}</p>}
+      </div>
+    </div>
   )
 }
