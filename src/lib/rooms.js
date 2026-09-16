@@ -13,26 +13,22 @@ function normaliseCode(code) {
   return clean
 }
 
-export async function createRoom(playerId) {
+export async function createRoom(playerId, name) {
   if (!playerId) throw new Error('Could not identify this player. Refresh and try again.')
-
-  const { data, error } = await supabase.rpc('create_room', { p_player: playerId })
+  const cleanName = String(name ?? '').trim()
+  if (!cleanName) throw new Error('Enter your name first.')
+  const { data, error } = await supabase.rpc('create_room', { p_player: playerId, p_name: cleanName })
   if (error) throw new Error(error.message || 'Could not create the room.')
-
   return assertRoom(data)
 }
 
-export async function joinRoom(code, playerId) {
+export async function joinRoom(code, playerId, name) {
   if (!playerId) throw new Error('Could not identify this player. Refresh and try again.')
-
   const cleanCode = normaliseCode(code)
-  const { data, error } = await supabase.rpc('join_room', {
-    p_code: cleanCode,
-    p_player: playerId
-  })
-
+  const cleanName = String(name ?? '').trim()
+  if (!cleanName) throw new Error('Enter your name first.')
+  const { data, error } = await supabase.rpc('join_room', { p_code: cleanCode, p_player: playerId, p_name: cleanName })
   if (error) throw new Error(error.message || 'Could not join the room.')
-
   return assertRoom(data)
 }
 
@@ -43,19 +39,12 @@ export async function fetchRoom(code) {
   return assertRoom(data)
 }
 
-// Fires cb with the fresh room row on every change. Returns an unsubscribe fn.
 export function subscribeRoom(code, cb) {
   const cleanCode = normaliseCode(code)
-  const channel = supabase
-    .channel(`room:${cleanCode}`)
-    .on(
-      'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `code=eq.${cleanCode}` },
-      (payload) => cb(payload.new)
-    )
+  const channel = supabase.channel(`room:${cleanCode}`)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `code=eq.${cleanCode}` }, (payload) => cb(payload.new))
     .subscribe((status) => {
       if (status === 'CHANNEL_ERROR') console.error('Room realtime subscription failed.')
     })
-
   return () => supabase.removeChannel(channel)
 }
