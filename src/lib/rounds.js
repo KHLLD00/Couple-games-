@@ -35,6 +35,16 @@ export async function getReveal(code, idx) {
   return data
 }
 
+export async function setReaction(code, idx, playerId, reaction) {
+  const { error } = await supabase.rpc('set_reaction', {
+    p_code: code,
+    p_idx: idx,
+    p_player: playerId,
+    p_reaction: reaction
+  })
+  if (error) throw new Error(error.message)
+}
+
 export async function setVerdict(code, idx, playerId, verdict) {
   const { error } = await supabase.rpc('set_verdict', {
     p_code: code,
@@ -43,6 +53,12 @@ export async function setVerdict(code, idx, playerId, verdict) {
     p_verdict: verdict
   })
   if (error) throw new Error(error.message)
+}
+
+export async function getGameSummary(code) {
+  const { data, error } = await supabase.rpc('game_summary', { p_code: code })
+  if (error) throw new Error(error.message)
+  return data ?? []
 }
 
 export async function finishGame(code) {
