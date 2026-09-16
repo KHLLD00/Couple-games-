@@ -7,7 +7,7 @@ export default function Landing({ onCreate, onJoin, busy, error, initialCode = '
   const [name, setName] = useState('')
   const [code, setCode] = useState(initialCode)
 
-  const clean = code.replace(/[^2-9BCDFGHJKLMNPQRSTVWXYZ]/gi, '').toUpperCase().slice(0, 6)
+  const clean = code.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 6)
   const canContinue = name.trim().length > 0
 
   return (
