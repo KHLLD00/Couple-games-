@@ -1,17 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Button from '../components/Button.jsx'
 import { Seam, SeamHalf } from '../components/Seam.jsx'
-import { subscribeRoom } from '../lib/rooms.js'
 
-export default function Lobby({ room, isHost, onRoomUpdate, onStart }) {
+export default function Lobby({ room, isHost, onStart, busy }) {
   const [copied, setCopied] = useState(false)
   const bothIn = Boolean(room.guest_id)
-
-  useEffect(() => {
-    // Whoever is waiting alone in the lobby needs to know the moment
-    // the other person joins, without polling or a manual refresh.
-    return subscribeRoom(room.code, onRoomUpdate)
-  }, [room.code, onRoomUpdate])
 
   async function share() {
     const text = `Play Same Page with me. Room code: ${room.code}`
@@ -55,8 +48,8 @@ export default function Lobby({ room, isHost, onRoomUpdate, onStart }) {
         <Button variant="ghost" onClick={share}>
           {copied ? 'Code copied' : 'Send the code'}
         </Button>
-        <Button onClick={onStart} disabled={!bothIn}>
-          {bothIn ? 'Start playing' : 'Waiting for them'}
+        <Button onClick={onStart} disabled={!bothIn || busy}>
+          {bothIn ? (busy ? 'Opening round 1' : 'Start playing') : 'Waiting for them'}
         </Button>
       </div>
     </div>
