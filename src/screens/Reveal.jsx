@@ -5,7 +5,7 @@ import { getReveal, setReaction } from '../lib/rounds.js'
 
 const REACTIONS = ['❤️', '😂', '🥹', '😮']
 
-export default function Reveal({ room, round, me, reveal, onVerdict, onNext, busy }) {
+export default function Reveal({ room, round, me, reveal, onVerdict, onNext, busy, isLastRound }) {
   const mine = reveal.find((a) => a.player_id === me)
   const theirs = reveal.find((a) => a.player_id !== me)
   const [reaction, setReactionState] = useState(mine?.reaction ?? null)
@@ -30,7 +30,6 @@ export default function Reveal({ room, round, me, reveal, onVerdict, onNext, bus
       await setReaction(room.code, round.idx, me, value)
       setReactionState(value)
       const fresh = await getReveal(room.code, round.idx)
-      // Parent owns reveal state, so the local reaction is enough until the next update.
       if (fresh.length) setReactionState(fresh.find((a) => a.player_id === me)?.reaction ?? value)
     } finally {
       setReacting(false)
@@ -87,7 +86,9 @@ export default function Reveal({ room, round, me, reveal, onVerdict, onNext, bus
       ) : isText && !bothVerdictsIn ? (
         <p className="text-center text-cream/60">Waiting on their call.</p>
       ) : (
-        <Button onClick={onNext} disabled={busy}>Next round</Button>
+        <Button onClick={onNext} disabled={busy}>
+          {isLastRound ? 'See our results' : 'Next round'}
+        </Button>
       )}
     </div>
   )
