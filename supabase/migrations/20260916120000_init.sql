@@ -212,6 +212,8 @@ begin
 end $$;
 
 -- Free text rounds score on agreement: both people have to call it a match.
+-- Nudges rounds on every verdict (not just the second one) so the partner's
+-- realtime subscription fires as soon as either person has weighed in.
 create or replace function set_verdict(p_code text, p_idx int, p_player uuid, p_verdict boolean)
 returns void language plpgsql security definer set search_path = public as $$
 declare r rounds;
@@ -221,10 +223,14 @@ begin
 
   update answers set verdict = p_verdict where round_id = r.id and player_id = p_player;
 
-  update rounds set matched = (
-    select count(*) filter (where verdict is true) = 2 from answers where round_id = r.id
-  ) where id = r.id
-    and (select count(*) filter (where verdict is not null) from answers where round_id = r.id) = 2;
+  update rounds set
+    answer_count = answer_count,
+    matched = case
+      when (select count(*) filter (where verdict is not null) from answers where round_id = r.id) = 2
+      then (select count(*) filter (where verdict is true) = 2 from answers where round_id = r.id)
+      else matched
+    end
+  where id = r.id;
 end $$;
 
 create or replace function finish_game(p_code text)
