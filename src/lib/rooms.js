@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 
-const CODE_PATTERN = /^[2-9BCDFGHJKLMNPQRSTVWXYZ]{6}$/i
+const CODE_PATTERN = /^[A-Z0-9]{6}$/i
 function assertRoom(room) { if (!room?.code) throw new Error('Supabase did not return a valid room.'); return room }
 function normaliseCode(code) { const clean = String(code ?? '').trim().toUpperCase(); if (!CODE_PATTERN.test(clean)) throw new Error('Enter a valid 6-character room code.'); return clean }
 
