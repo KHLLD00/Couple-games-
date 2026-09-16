@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Button from '../components/Button.jsx'
 import { Seam, SeamHalf } from '../components/Seam.jsx'
 
-export default function Lobby({ room, isHost, onStart, busy }) {
+export default function Lobby({ room, isHost, onStart, onExit, busy }) {
   const [copied, setCopied] = useState(false)
   const bothIn = Boolean(room.guest_id)
 
@@ -50,6 +50,9 @@ export default function Lobby({ room, isHost, onStart, busy }) {
         </Button>
         <Button onClick={onStart} disabled={!bothIn || busy}>
           {bothIn ? (busy ? 'Opening round 1' : 'Start playing') : 'Waiting for them'}
+        </Button>
+        <Button variant="ghost" onClick={onExit}>
+          Exit session
         </Button>
       </div>
     </div>
