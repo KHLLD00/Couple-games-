@@ -208,12 +208,12 @@ begin
   select * into r from rounds where room_code = p_code and idx = p_idx;
   if not found or not r.revealed then return; end if;
   update answers set reaction = p_reaction where round_id = r.id and player_id = p_player;
-  update rounds set answer_count = answer_count where id = r.id; -- nudge realtime
+  update rounds set answer_count = answer_count where id = r.id;
 end $$;
 
 -- Free text rounds score on agreement: both people have to call it a match.
--- Nudges rounds on every verdict (not just the second one) so the partner's
--- realtime subscription fires as soon as either person has weighed in.
+-- Nudges rounds on every verdict so the partner's realtime subscription fires
+-- as soon as either person has weighed in.
 create or replace function set_verdict(p_code text, p_idx int, p_player uuid, p_verdict boolean)
 returns void language plpgsql security definer set search_path = public as $$
 declare r rounds;
@@ -266,6 +266,7 @@ grant execute on function
   finish_game(text), game_summary(text)
 to anon, authenticated;
 
+-- Original question bank
 insert into questions (prompt, kind, options, tier) values
   ('Who is more likely to fall asleep first tonight?', 'choice', '["Me", "You", "Dead heat", "Depends who had jollof"]', 'opening'),
   ('How do you take your tea?', 'choice', '["Sweet enough to stand a spoon in", "A little sugar", "No sugar", "I do not drink tea"]', 'opening'),
@@ -285,3 +286,107 @@ insert into questions (prompt, kind, options, tier) values
   ('What does the other person do that quietly fixes a bad day?', 'text', null, 'deep'),
   ('When you picture us old, what are we doing?', 'text', null, 'deep'),
   ('Who carries more of the invisible work right now?', 'choice', '["Me", "You", "Evenly split", "Neither of us, honestly"]', 'deep');
+
+-- 100 Nigerian-context questions. Kept in the migration so a fresh database
+-- gets the same 118-question bank as the current production database.
+insert into questions (prompt, kind, options, tier) values
+  ('If we had ₦20,000 for dinner, what would I choose?', 'text', null, 'opening'),
+  ('Which Nigerian food could I eat three days in a row?', 'text', null, 'opening'),
+  ('Who is more likely to finish the last piece of chicken without asking?', 'text', null, 'opening'),
+  ('If we were at a buka, what would I order?', 'text', null, 'opening'),
+  ('Who would complain first if NEPA took the light during a movie?', 'text', null, 'opening'),
+  ('What small thing do I do that secretly makes you happy?', 'text', null, 'opening'),
+  ('If I do not reply for three hours, what is the most likely reason?', 'text', null, 'opening'),
+  ('Who is more likely to say “I am not angry” while clearly being angry?', 'text', null, 'opening'),
+  ('Who would make the first move after an argument?', 'text', null, 'opening'),
+  ('Who would take longer to get ready for an outing?', 'text', null, 'opening'),
+  ('Who would enjoy an owambe more?', 'text', null, 'opening'),
+  ('Who would be more likely to suggest staying home after we already dressed up?', 'text', null, 'opening'),
+  ('Who would survive longer at a Nigerian family gathering?', 'text', null, 'opening'),
+  ('If we ordered suya, who would secretly eat more than their share?', 'text', null, 'opening'),
+  ('Who would be more likely to spend ₦5,000 on snacks without thinking twice?', 'text', null, 'opening'),
+  ('If we had a free Saturday, what would I rather do?', 'text', null, 'opening'),
+  ('Who is more likely to call instead of text?', 'text', null, 'opening'),
+  ('Who would notice first if I changed my hairstyle?', 'text', null, 'opening'),
+  ('Who is more likely to be late because of traffic?', 'text', null, 'opening'),
+  ('If we went on a road trip, who would control the music?', 'text', null, 'opening'),
+  ('What would I say if my parents asked what I like most about you?', 'text', null, 'deep'),
+  ('What part of Nigerian dating culture do you think I find most stressful?', 'text', null, 'deep'),
+  ('If our families disagreed about our wedding plans, what would I want us to do?', 'text', null, 'deep'),
+  ('How important do you think family approval would be to me before marriage?', 'text', null, 'deep'),
+  ('What kind of introduction ceremony would I actually want?', 'text', null, 'deep'),
+  ('Would I prefer a huge Nigerian wedding or a smaller celebration?', 'text', null, 'deep'),
+  ('What would I consider a reasonable amount to spend on a wedding?', 'text', null, 'deep'),
+  ('If we had to choose between buying a car and saving for a house, which would I pick?', 'text', null, 'deep'),
+  ('If we suddenly received ₦1 million, what would I want to do with it first?', 'text', null, 'deep'),
+  ('Would I rather save extra money or use it for a memorable experience?', 'text', null, 'deep'),
+  ('What money habit of mine would probably annoy you?', 'text', null, 'deep'),
+  ('Would I expect us to tell each other exactly how much we earn?', 'text', null, 'deep'),
+  ('If one of us lost a job, what would I expect from the other person?', 'text', null, 'deep'),
+  ('Would I rather split bills equally or contribute based on income?', 'text', null, 'deep'),
+  ('What financial goal would I want us to work toward first?', 'text', null, 'deep'),
+  ('Would I be comfortable lending money to family from our shared savings?', 'text', null, 'deep'),
+  ('How much personal space do I think a relationship should have?', 'text', null, 'deep'),
+  ('What would make me feel most appreciated in a relationship?', 'text', null, 'deep'),
+  ('What is one thing I would never want us to argue about in public?', 'text', null, 'deep'),
+  ('Would I rather solve an argument immediately or take time to cool down?', 'text', null, 'deep'),
+  ('How do you think I prefer to receive an apology?', 'text', null, 'deep'),
+  ('What kind of disagreement would be hardest for me to let go of?', 'text', null, 'deep'),
+  ('Would I tell you immediately if something you did hurt me?', 'text', null, 'deep'),
+  ('What would I consider crossing a line in a relationship?', 'text', null, 'deep'),
+  ('How much privacy do I think partners should have with their phones?', 'text', null, 'deep'),
+  ('Would I be comfortable with my partner having close friends of the opposite sex?', 'text', null, 'deep'),
+  ('What would make me feel jealous even if I tried not to show it?', 'text', null, 'deep'),
+  ('Would I rather receive a thoughtful ₦2,000 gift or an expensive gift with little thought behind it?', 'text', null, 'deep'),
+  ('What kind of date would feel most romantic to me?', 'text', null, 'deep'),
+  ('If money was tight, what simple date would I still enjoy?', 'text', null, 'deep'),
+  ('Would I rather spend a weekend at home together or travel somewhere new?', 'text', null, 'deep'),
+  ('What Nigerian city would I most want us to visit together?', 'text', null, 'deep'),
+  ('Would I rather live in Abuja, Lagos, or somewhere quieter?', 'text', null, 'deep'),
+  ('How important would living close to our families be to me?', 'text', null, 'deep'),
+  ('Would I be willing to relocate for my partner’s career?', 'text', null, 'deep'),
+  ('Would I rather build our life slowly or chase a more ambitious lifestyle?', 'text', null, 'deep'),
+  ('How important would owning a home be to me before marriage?', 'text', null, 'deep'),
+  ('Would I prefer to have children early or wait until we feel financially ready?', 'text', null, 'deep'),
+  ('How many children do you think I would ideally want?', 'text', null, 'deep'),
+  ('Who do you think I would want to name our first child after?', 'text', null, 'deep'),
+  ('Would I want our children raised with strong Nigerian traditions?', 'text', null, 'deep'),
+  ('Which Nigerian tradition would I most want to pass on?', 'text', null, 'deep'),
+  ('Would I want our children to speak our local languages?', 'text', null, 'deep'),
+  ('How involved do you think I would want our parents to be in raising our children?', 'text', null, 'deep'),
+  ('Would I rather spend Christmas with my family or yours?', 'text', null, 'deep'),
+  ('Who would I want to visit first during a festive holiday?', 'text', null, 'deep'),
+  ('Would I rather attend church or mosque together every week or keep our practice more private?', 'text', null, 'deep'),
+  ('How important would religion be in our future family?', 'text', null, 'deep'),
+  ('Would I expect my partner to participate in family events even when they do not feel like going?', 'text', null, 'deep'),
+  ('What would I do if a relative made my partner uncomfortable?', 'text', null, 'deep'),
+  ('Would I defend my partner publicly even if I disagreed with them privately?', 'text', null, 'deep'),
+  ('What would I want my partner to do when my family crosses a boundary?', 'text', null, 'deep'),
+  ('How would I want us to handle pressure from relatives about marriage?', 'text', null, 'deep'),
+  ('Would I rather keep our relationship private or share it openly with friends and family?', 'text', null, 'deep'),
+  ('Who would probably know about our relationship first?', 'text', null, 'deep'),
+  ('What would I post about our relationship online, if anything?', 'text', null, 'deep'),
+  ('Would I want matching outfits for an occasion?', 'text', null, 'deep'),
+  ('Would I enjoy taking couple pictures at an owambe?', 'text', null, 'deep'),
+  ('Would I rather spend money on a nice restaurant or a home-cooked meal?', 'text', null, 'deep'),
+  ('Which Nigerian snack would I most likely buy on a random outing?', 'text', null, 'deep'),
+  ('If we were travelling by road, who would complain about the journey first?', 'text', null, 'deep'),
+  ('Who would be more likely to say “we are almost there” when we clearly are not?', 'text', null, 'deep'),
+  ('Who would handle a flat tyre better?', 'text', null, 'deep'),
+  ('If our generator ran out of fuel during a movie, what would I do first?', 'text', null, 'deep'),
+  ('Who would be more likely to argue with a danfo driver?', 'text', null, 'deep'),
+  ('Who would be more likely to bargain aggressively at a market?', 'text', null, 'deep'),
+  ('Would I rather shop at a mall or a local market?', 'text', null, 'deep'),
+  ('Who would be more likely to spend an afternoon at a Nigerian beach?', 'text', null, 'deep'),
+  ('If we had one free day in Lagos, what would I want us to do?', 'text', null, 'deep'),
+  ('If we had one free day in Abuja, what would I want us to do?', 'text', null, 'deep'),
+  ('Would I rather have suya, shawarma, or pizza for a late-night meal?', 'text', null, 'deep'),
+  ('Which Nigerian drink would I choose at a casual hangout?', 'text', null, 'deep'),
+  ('Who would be more likely to order extra meat?', 'text', null, 'deep'),
+  ('Would I rather cook together or order food?', 'text', null, 'deep'),
+  ('Who would be more likely to leave dishes until later?', 'text', null, 'deep'),
+  ('Would I care if my partner could not cook Nigerian food?', 'text', null, 'deep'),
+  ('Who would be more likely to wake up early on a Saturday?', 'text', null, 'deep'),
+  ('Would I rather spend a rainy day indoors or go out anyway?', 'text', null, 'deep'),
+  ('What is one everyday habit of mine you think would become very obvious if we lived together?', 'text', null, 'deep'),
+  ('Who would be more likely to control the TV remote?', 'text', null, 'deep');
