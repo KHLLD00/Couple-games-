@@ -7,7 +7,7 @@ export default function Lobby({ room, isHost, onStart, onExit, busy }) {
   const bothIn = Boolean(room.guest_id)
 
   async function share() {
-    const text = `Play Same Page with me. Room code: ${room.code}`
+    const text = `Come play Same Page with me 👀 Room code: ${room.code}`
     try {
       if (navigator.share) {
         await navigator.share({ text })
@@ -24,10 +24,10 @@ export default function Lobby({ room, isHost, onStart, onExit, busy }) {
   return (
     <div className="flex min-h-dvh flex-col justify-between px-5 pb-8 pt-14">
       <header className="text-center">
-        <p className="seam-label">Room open</p>
+        <p className="seam-label">Your game is ready</p>
         <p className="mt-4 font-mono text-5xl tracking-[0.2em] text-apricot">{room.code}</p>
         <p className="mx-auto mt-4 max-w-xs text-cream/70">
-          Send this to them. They tap join and type it in.
+          Send them the code. Let's see if they actually show up.
         </p>
       </header>
 
@@ -46,13 +46,13 @@ export default function Lobby({ room, isHost, onStart, onExit, busy }) {
 
       <div className="space-y-3">
         <Button variant="ghost" onClick={share}>
-          {copied ? 'Code copied' : 'Send the code'}
+          {copied ? 'Code copied' : 'Send it to them'}
         </Button>
         <Button onClick={onStart} disabled={!bothIn || busy}>
-          {bothIn ? (busy ? 'Opening round 1' : 'Start playing') : 'Waiting for them'}
+          {bothIn ? (busy ? 'Getting the first question...' : "Let's find out") : 'Waiting on your person...'}
         </Button>
         <Button variant="ghost" onClick={onExit}>
-          Exit session
+          Leave game
         </Button>
       </div>
     </div>
