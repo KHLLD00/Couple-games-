@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Question from './Question.jsx'
 import Reveal from './Reveal.jsx'
+import Button from '../components/Button.jsx'
 import {
   openRound,
   fetchRound,
@@ -12,7 +13,7 @@ import {
   subscribeRounds
 } from '../lib/rounds.js'
 
-export default function Play({ room, me }) {
+export default function Play({ room, me, onExit }) {
   const idx = room.current_round
   const [round, setRound] = useState(null)
   const [mySubmission, setMySubmission] = useState(null)
@@ -116,6 +117,14 @@ export default function Play({ room, me }) {
     }
   }
 
+  const exitButton = (
+    <div className="mt-6 flex justify-center">
+      <Button variant="ghost" onClick={onExit}>
+        Exit session
+      </Button>
+    </div>
+  )
+
   if (room.status === 'finished') {
     const matched = (summary ?? []).filter((item) => item.matched === true).length
     const played = summary?.length ?? 0
@@ -144,6 +153,7 @@ export default function Play({ room, me }) {
             </div>
           ))}
         </div>
+        {exitButton}
       </div>
     )
   }
@@ -158,22 +168,26 @@ export default function Play({ room, me }) {
 
   if (round.revealed && reveal) {
     return (
-      <Reveal
-        room={room}
-        round={round}
-        me={me}
-        reveal={reveal}
-        onVerdict={handleVerdict}
-        onNext={handleNext}
-        busy={busy}
-        isLastRound={idx + 1 >= room.total_rounds}
-      />
+      <>
+        <Reveal
+          room={room}
+          round={round}
+          me={me}
+          reveal={reveal}
+          onVerdict={handleVerdict}
+          onNext={handleNext}
+          busy={busy}
+          isLastRound={idx + 1 >= room.total_rounds}
+        />
+        {exitButton}
+      </>
     )
   }
 
   return (
     <>
       <Question round={round} mySubmission={mySubmission} onSubmit={handleSubmit} busy={busy} />
+      {exitButton}
       {error && <p className="fixed bottom-4 left-5 right-5 text-center text-sm text-cherry">{error}</p>}
     </>
   )
