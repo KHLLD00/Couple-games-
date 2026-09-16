@@ -2,21 +2,47 @@ import { useEffect, useState } from 'react'
 import Landing from './screens/Landing.jsx'
 import Lobby from './screens/Lobby.jsx'
 import Play from './screens/Play.jsx'
-import { playerId } from './lib/player.js'
+import { supabase } from './lib/supabase.js'
 import { createRoom, joinRoom, subscribeRoom, fetchRoom } from './lib/rooms.js'
 import { openRound } from './lib/rounds.js'
 
 const ROOM_KEY = 'same-page:room'
 
 export default function App() {
-  const me = playerId()
+  const [me, setMe] = useState(null)
   const [room, setRoom] = useState(null)
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
 
-  // Restore the room after a refresh so either player can reconnect without
-  // having to enter the room code again.
   useEffect(() => {
+    let active = true
+
+    async function initialisePlayer() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        let user = session?.user
+
+        if (!user) {
+          const { data, error: authError } = await supabase.auth.signInAnonymously()
+          if (authError) throw authError
+          user = data.user
+        }
+
+        if (!user) throw new Error('Could not create a player session.')
+        if (active) setMe(user.id)
+      } catch (e) {
+        if (active) setError(e.message || 'Could not create a player session.')
+      } finally {
+        if (active) setBusy(false)
+      }
+    }
+
+    initialisePlayer()
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (!me) return
     const savedCode = localStorage.getItem(ROOM_KEY)
     if (!savedCode) return
 
@@ -34,12 +60,9 @@ export default function App() {
         if (active) localStorage.removeItem(ROOM_KEY)
       })
 
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [me])
 
-  // One subscription for the life of the room, shared by Lobby and Play.
   useEffect(() => {
     if (!room) return
     return subscribeRoom(room.code, setRoom)
@@ -85,14 +108,20 @@ export default function App() {
     }
   }
 
+  if (busy && !me) {
+    return <div className="flex min-h-dvh items-center justify-center px-5"><p className="seam-label">Starting your session</p></div>
+  }
+
+  if (!me) {
+    return <div className="flex min-h-dvh items-center justify-center px-5"><p className="text-center text-cherry">{error || 'Could not start the game.'}</p></div>
+  }
+
   if (!room) {
     return <Landing onCreate={handleCreate} onJoin={handleJoin} busy={busy} error={error} />
   }
 
   if (room.status === 'lobby') {
-    return (
-      <Lobby room={room} isHost={room.host_id === me} onStart={handleStart} busy={busy} />
-    )
+    return <Lobby room={room} isHost={room.host_id === me} onStart={handleStart} busy={busy} />
   }
 
   return <Play room={room} me={me} />
