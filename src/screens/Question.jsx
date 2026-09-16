@@ -21,12 +21,12 @@ export default function Question({ round, mySubmission, onSubmit, busy }) {
             {submitted ? (
               <span className="font-display text-lg">{mySubmission}</span>
             ) : (
-              <span className="text-sm text-cream/45">Answering</span>
+              <span className="text-sm text-cream/45">Still thinking...</span>
             )}
           </SeamHalf>
           <SeamHalf label="Them" sealed>
             <span className="text-sm text-cream/45">
-              {otherHere ? 'Answered' : 'Waiting'}
+              {otherHere ? 'They answered 👀' : 'Still waiting...'}
             </span>
           </SeamHalf>
         </Seam>
@@ -34,7 +34,7 @@ export default function Question({ round, mySubmission, onSubmit, busy }) {
 
       {submitted ? (
         <p className="text-center text-cream/60">
-          Sealed. It flips the moment they answer too.
+          Locked. Their answer is still hiding.
         </p>
       ) : round.kind === 'choice' ? (
         <div className="space-y-3">
@@ -56,13 +56,13 @@ export default function Question({ round, mySubmission, onSubmit, busy }) {
             autoFocus
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type your answer"
+            placeholder="Say it with your chest..."
             rows={3}
             className="w-full rounded-2xl border border-cream/20 bg-plum/70 px-5 py-4
               text-lg text-cream placeholder:text-cream/25"
           />
           <Button onClick={() => onSubmit(text.trim())} disabled={busy || !text.trim()}>
-            Seal my answer
+            Lock it in
           </Button>
         </div>
       )}
