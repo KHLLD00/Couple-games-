@@ -32,13 +32,21 @@ export async function resetGame(code) {
   return assertRoom(data)
 }
 
+export async function leaveRoom(code, playerId) {
+  const cleanCode = normaliseCode(code)
+  const { error } = await supabase.rpc('leave_room', { p_code: cleanCode, p_player: playerId })
+  if (error) throw new Error(error.message || 'Could not leave the game.')
+}
+
 export async function fetchRoom(code) {
   const cleanCode = normaliseCode(code); const { data, error } = await supabase.from('rooms').select('*').eq('code', cleanCode).single()
   if (error) throw new Error(error.message); return assertRoom(data)
 }
 
+// event: '*' so a partner leaving (DELETE) is visible too, not just field
+// updates. cb receives the fresh row on UPDATE, or null when the room is gone.
 export function subscribeRoom(code, cb) {
   const cleanCode = normaliseCode(code)
-  const channel = supabase.channel(`room:${cleanCode}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `code=eq.${cleanCode}` }, (payload) => cb(payload.new)).subscribe((status) => { if (status === 'CHANNEL_ERROR') console.error('Room realtime subscription failed.') })
+  const channel = supabase.channel(`room:${cleanCode}`).on('postgres_changes', { event: '*', schema: 'public', table: 'rooms', filter: `code=eq.${cleanCode}` }, (payload) => cb(payload.eventType === 'DELETE' ? null : payload.new)).subscribe((status) => { if (status === 'CHANNEL_ERROR') console.error('Room realtime subscription failed.') })
   return () => supabase.removeChannel(channel)
 }
