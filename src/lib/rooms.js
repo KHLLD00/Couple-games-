@@ -20,6 +20,12 @@ export async function joinRoom(code, playerId, name) {
   return assertRoom(data)
 }
 
+export async function configureGame(code, mode, totalRounds) {
+  const { data, error } = await supabase.rpc('configure_game', { p_code: code, p_mode: mode, p_total_rounds: totalRounds })
+  if (error) throw new Error(error.message || 'Could not save game settings.')
+  return assertRoom(data)
+}
+
 export async function resetGame(code) {
   const { data, error } = await supabase.rpc('reset_game', { p_code: code })
   if (error) throw new Error(error.message || 'Could not start another game.')
