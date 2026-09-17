@@ -17,6 +17,7 @@ export default function Reveal({ room, round, me, reveal, onVerdict, onNext, bus
   const isText = round.kind === 'text'
   const isChoice = round.kind === 'choice'
   const isTruthDare = round.mode === 'truth_or_dare'
+  const isAskMeAnything = round.mode === 'ask_me_anything'
   const myVerdictIn = isText && mine?.verdict != null
   const bothVerdictsIn = isText && mine?.verdict != null && theirs?.verdict != null
   const matched = round.matched
@@ -42,13 +43,19 @@ export default function Reveal({ room, round, me, reveal, onVerdict, onNext, bus
       <header className="text-center">
         <p className="seam-label">{MODE_NAMES[round.mode] || 'Reveal'} · Round {round.idx + 1}</p>
         <h2 className="mx-auto mt-4 max-w-sm text-3xl leading-tight">{round.prompt?.replace(/^(Truth|Dare):\s*/i, '')}</h2>
-        <p className="mt-3 text-sm text-cream/40">Now you get to see what they picked.</p>
+        <p className="mt-3 text-sm text-cream/40">{isAskMeAnything ? 'Here is what they actually asked, and what you said back.' : 'Now you get to see what they picked.'}</p>
       </header>
 
       <section className="my-8">
         <Seam>
-          <SeamHalf label="You"><span className="font-display text-lg">{mine?.value ?? '...'}</span></SeamHalf>
-          <SeamHalf label="Them"><span className="font-display text-lg">{theirs?.value ?? '...'}</span></SeamHalf>
+          <SeamHalf label="You">
+            {isAskMeAnything && <p className="mb-1 text-xs text-cream/40">{mine?.custom_question}</p>}
+            <span className="font-display text-lg">{mine?.value ?? '...'}</span>
+          </SeamHalf>
+          <SeamHalf label="Them">
+            {isAskMeAnything && <p className="mb-1 text-xs text-cream/40">{theirs?.custom_question}</p>}
+            <span className="font-display text-lg">{theirs?.value ?? '...'}</span>
+          </SeamHalf>
         </Seam>
 
         {(isChoice || bothVerdictsIn) && !isTruthDare && (
