@@ -7,12 +7,20 @@ export async function openRound(code, idx) {
 }
 
 export async function fetchRound(code, idx) {
-  const { data, error } = await supabase
-    .from('rounds')
-    .select('*')
-    .eq('room_code', code)
-    .eq('idx', idx)
-    .maybeSingle()
+  const { data, error } = await supabase.from('rounds').select('*').eq('room_code', code).eq('idx', idx).maybeSingle()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function submitCustomQuestion(code, idx, playerId, value) {
+  const cleanValue = String(value ?? '').trim()
+  if (!cleanValue) throw new Error('Write a question first.')
+  const { error } = await supabase.rpc('submit_custom_question', { p_code: code, p_idx: idx, p_player: playerId, p_value: cleanValue })
+  if (error) throw new Error(error.message)
+}
+
+export async function getCustomQuestion(code, idx, playerId) {
+  const { data, error } = await supabase.rpc('get_custom_question', { p_code: code, p_idx: idx, p_player: playerId })
   if (error) throw new Error(error.message)
   return data
 }
@@ -20,12 +28,7 @@ export async function fetchRound(code, idx) {
 export async function submitAnswer(code, idx, playerId, value) {
   const cleanValue = String(value ?? '').trim()
   if (!cleanValue) throw new Error('Please enter an answer.')
-  const { error } = await supabase.rpc('submit_answer', {
-    p_code: code,
-    p_idx: idx,
-    p_player: playerId,
-    p_value: cleanValue
-  })
+  const { error } = await supabase.rpc('submit_answer', { p_code: code, p_idx: idx, p_player: playerId, p_value: cleanValue })
   if (error) throw new Error(error.message)
 }
 
@@ -36,22 +39,12 @@ export async function getReveal(code, idx) {
 }
 
 export async function setReaction(code, idx, playerId, reaction) {
-  const { error } = await supabase.rpc('set_reaction', {
-    p_code: code,
-    p_idx: idx,
-    p_player: playerId,
-    p_reaction: reaction
-  })
+  const { error } = await supabase.rpc('set_reaction', { p_code: code, p_idx: idx, p_player: playerId, p_reaction: reaction })
   if (error) throw new Error(error.message)
 }
 
 export async function setVerdict(code, idx, playerId, verdict) {
-  const { error } = await supabase.rpc('set_verdict', {
-    p_code: code,
-    p_idx: idx,
-    p_player: playerId,
-    p_verdict: verdict
-  })
+  const { error } = await supabase.rpc('set_verdict', { p_code: code, p_idx: idx, p_player: playerId, p_verdict: verdict })
   if (error) throw new Error(error.message)
 }
 
@@ -67,20 +60,8 @@ export async function finishGame(code) {
 }
 
 export function subscribeRounds(code, cb) {
-  const channel = supabase
-    .channel(`rounds:${code}`)
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'rounds', filter: `room_code=eq.${code}` },
-      (payload) => {
-        if (payload.eventType !== 'DELETE') cb(payload.new)
-      }
-    )
-    .subscribe((status) => {
-      if (status === 'CHANNEL_ERROR') {
-        console.error(`Realtime subscription failed for room ${code}`)
-      }
-    })
-
+  const channel = supabase.channel(`rounds:${code}`).on('postgres_changes', { event: '*', schema: 'public', table: 'rounds', filter: `room_code=eq.${code}` }, (payload) => {
+    if (payload.eventType !== 'DELETE') cb(payload.new)
+  }).subscribe((status) => { if (status === 'CHANNEL_ERROR') console.error(`Realtime subscription failed for room ${code}`) })
   return () => supabase.removeChannel(channel)
 }
