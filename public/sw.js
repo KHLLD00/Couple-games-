@@ -11,11 +11,9 @@ self.addEventListener('push', (event) => {
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       if (clients.some((client) => client.visibilityState === 'visible')) return
       return self.registration.showNotification(title, {
-      body,
-      tag,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      data: { url },
+        body,
+        tag,
+        data: { url },
         vibrate: [80, 40, 80],
       })
     })
