@@ -10,6 +10,7 @@ import { createRoom, joinRoom, leaveRoom, subscribeRoom, configureGame, resetGam
 import { openRound } from './lib/rounds.js'
 import { primeAudio, playPartnerJoined, playCompleteNotification } from './lib/sounds.js'
 import { notify } from './lib/notifications.js'
+import { notifyPartner } from './lib/push.js'
 
 export default function App() {
   const [me, setMe] = useState(null)
@@ -67,11 +68,13 @@ export default function App() {
         playPartnerJoined()
         showNotice('Your partner joined.')
         notify('Same Page', 'Your partner joined the game.')
+        notifyPartner(updated.code, 'partner_joined')
       }
       if(previous?.status !== 'finished' && updated.status === 'finished'){
         playCompleteNotification()
         showNotice('Game complete.')
         notify('Same Page', 'Your game is complete.')
+        notifyPartner(updated.code, 'game_complete')
       }
       previousRoom.current = updated
       setRoom(updated)
