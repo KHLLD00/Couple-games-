@@ -8,13 +8,16 @@ self.addEventListener('push', (event) => {
   const url = data.url || '/'
 
   event.waitUntil(
-    self.registration.showNotification(title, {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      if (clients.some((client) => client.visibilityState === 'visible')) return
+      return self.registration.showNotification(title, {
       body,
       tag,
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       data: { url },
-      vibrate: [80, 40, 80],
+        vibrate: [80, 40, 80],
+      })
     })
   )
 })
