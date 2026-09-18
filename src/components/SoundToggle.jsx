@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { isSoundEnabled, setSoundEnabled, playTap } from '../lib/sounds.js'
 import { requestNotifications, notificationPermission } from '../lib/notifications.js'
+import { enablePushNotifications, registerPushServiceWorker } from '../lib/push.js'
 
 export default function SoundToggle() {
   const [sound, setSound] = useState(isSoundEnabled())
   const [notifications, setNotifications] = useState(notificationPermission())
 
-  useEffect(() => setSound(isSoundEnabled()), [])
+  useEffect(() => {
+    setSound(isSoundEnabled())
+    registerPushServiceWorker().catch(() => {})
+  }, [])
 
   function toggleSound() {
     const next = !sound
@@ -16,8 +20,13 @@ export default function SoundToggle() {
   }
 
   async function enableNotifications() {
-    const permission = await requestNotifications()
-    setNotifications(permission)
+    try {
+      const permission = await enablePushNotifications()
+      setNotifications(permission)
+    } catch {
+      const permission = await requestNotifications()
+      setNotifications(permission)
+    }
   }
 
   return (
