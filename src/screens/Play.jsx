@@ -4,6 +4,7 @@ import Reveal from './Reveal.jsx'
 import Button from '../components/Button.jsx'
 import { primeAudio, playAnswerNotification, playReadyNotification, playRevealNotification } from '../lib/sounds.js'
 import { notify } from '../lib/notifications.js'
+import { notifyPartner } from '../lib/push.js'
 import { openRound, fetchRound, submitAnswer, submitCustomQuestion, getCustomQuestion, getReveal, setVerdict, getGameSummary, finishGame, subscribeRounds } from '../lib/rounds.js'
 
 const MODE_NAMES = { same_page: 'Same Page', ask_me_anything: 'Ask Me Anything', would_you_rather: 'Would You Rather', most_likely_to: 'Most Likely To', this_or_that: 'This or That', truth_or_dare: 'Truth or Dare', deep_dive: 'Deep Dive' }
@@ -47,11 +48,13 @@ export default function Play({ room, me, onExit, onPlayAgain }) {
         playAnswerNotification()
         showNotice('Your partner submitted.')
         notify('Same Page', 'Your partner submitted an answer.')
+        notifyPartner(room.code, 'answer_submitted')
       }
       if (row.answer_count >= 2 && previous < 2) {
         playReadyNotification()
         showNotice('Both of you are ready.')
         notify('Same Page', 'Both answers are in. Reveal is ready.')
+        notifyPartner(room.code, 'answer_submitted')
         playRevealNotification()
       }
     }
