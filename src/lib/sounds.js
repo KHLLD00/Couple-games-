@@ -1,4 +1,15 @@
 let audioContext
+const STORAGE_KEY = 'same-page:sound-enabled'
+
+export function isSoundEnabled() {
+  if (typeof window === 'undefined') return true
+  return localStorage.getItem(STORAGE_KEY) !== 'false'
+}
+
+export function setSoundEnabled(enabled) {
+  if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, String(enabled))
+  if (enabled) primeAudio()
+}
 
 function getContext() {
   if (typeof window === 'undefined') return null
@@ -11,7 +22,7 @@ export function primeAudio() {
   getContext()
 }
 
-function tone(ctx, frequency, start, duration, volume = 0.035) {
+function tone(ctx, frequency, start, duration, volume = 0.028) {
   const oscillator = ctx.createOscillator()
   const gain = ctx.createGain()
   oscillator.type = 'sine'
@@ -24,19 +35,34 @@ function tone(ctx, frequency, start, duration, volume = 0.035) {
   oscillator.stop(start + duration + 0.02)
 }
 
-export function playAnswerNotification() {
+function playSequence(notes) {
+  if (!isSoundEnabled()) return
   const ctx = getContext()
   if (!ctx) return
   const now = ctx.currentTime
-  tone(ctx, 660, now, 0.12)
-  tone(ctx, 880, now + 0.07, 0.14)
+  notes.forEach(([frequency, offset, duration, volume]) => tone(ctx, frequency, now + offset, duration, volume))
+}
+
+export function playTap() {
+  playSequence([[520, 0, 0.045, 0.018]])
+}
+
+export function playPartnerJoined() {
+  playSequence([[520, 0, 0.07, 0.018], [740, 0.06, 0.1, 0.024]])
+}
+
+export function playAnswerNotification() {
+  playSequence([[660, 0, 0.11, 0.024], [880, 0.07, 0.13, 0.026]])
+}
+
+export function playReadyNotification() {
+  playSequence([[587.33, 0, 0.09, 0.022], [783.99, 0.07, 0.12, 0.025]])
 }
 
 export function playRevealNotification() {
-  const ctx = getContext()
-  if (!ctx) return
-  const now = ctx.currentTime
-  tone(ctx, 523.25, now, 0.12)
-  tone(ctx, 659.25, now + 0.08, 0.12)
-  tone(ctx, 783.99, now + 0.16, 0.18)
+  playSequence([[523.25, 0, 0.11, 0.023], [659.25, 0.08, 0.12, 0.026], [783.99, 0.16, 0.18, 0.028]])
+}
+
+export function playCompleteNotification() {
+  playSequence([[392, 0, 0.11, 0.022], [523.25, 0.09, 0.13, 0.025], [659.25, 0.18, 0.2, 0.028]])
 }
