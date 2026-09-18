@@ -34,7 +34,10 @@ export async function enablePushNotifications() {
   }
 
   const json = subscription.toJSON()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Could not identify your player session.')
   const { error } = await supabase.from('push_subscriptions').upsert({
+    user_id: user.id,
     endpoint: json.endpoint,
     p256dh: json.keys?.p256dh,
     auth: json.keys?.auth,
