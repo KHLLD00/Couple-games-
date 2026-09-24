@@ -97,5 +97,6 @@ export default function App() {
       :room.status==='lobby'&&setup&&room.host_id===me?<GameSetup room={room} onSave={handleConfigure} busy={busy}/>
       :room.status==='lobby'?<Lobby room={room} isHost={room.host_id===me} onStart={handleStart} onSetup={()=>setSetup(true)} onExit={handleExit} busy={busy}/>
       :<Play room={room} me={me} onExit={handleExit} onPlayAgain={handlePlayAgain}/>}
+    <footer className="pb-4 pt-2 text-center text-xs text-cream/40">Powered by <a href="https://kaytechwebsolutions.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Kaytech Web Solutions</a></footer>
   </>
 }
